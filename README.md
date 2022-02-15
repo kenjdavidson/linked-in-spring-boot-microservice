@@ -143,6 +143,60 @@ Explore libraries available for working with Hypermedia As the Engine of Applica
 
 > Fancy way to say that it provides Links for different sub and related resources that are available within the response data.
 
+Although this is pretty straight forward, the one thing that gets me is that the response for tour:
+
+```
+{
+  "title" : "Big Sur Retreat",
+  "description" : "The region know as Big Sur is like Yosemite's younger cousin, with all the redwood scaling, rock climbing and, best of all, hiking that the larger park has to offer. Robison Jeffers once said, \"Big Sur is the greatest meeting of land and sea in the world,\" but the highlights are only accessible on foot.\nOur 3-day tour allows you to choose from multiple hikes led by experienced guides during the day, while comfortably situated in the evenings at the historic Big Sur River Inn. Take a tranquil walk to the coastal waterfall at Julia Pfeiffer Burns State Par or hike to the Married Redwoods. If you're prepared for a more strenuous climb, try Ollason's Peak in Toro Park. An optional 4th day includes admission to the Henry Miller Library and the Point Reyes Lighthouse.",
+  "blurb" : null,
+  "price" : 750.00,
+  "duration" : "3 days",
+  "keywords" : "Hiking, National Parks, Big Sur",
+  "difficulty" : "MEDIUM",
+  "region" : "CENTRAL_COAST",
+  "_links" : {
+    "self" : {
+      "href" : "http://localhost:8080/tours/1"
+    },
+    "tour" : {
+      "href" : "http://localhost:8080/tours/1"
+    },
+    "tourPackage" : {
+      "href" : "http://localhost:8080/tours/1/tourPackage"
+    }
+  }
+}
+```
+
+has a link for the `tourPackage` but not the tour package itself:
+
+```
+{}
+  "title" : "Big Sur Retreat",
+  "tourPackage: {
+    "code" : "BC",
+    "name" : "Backpack Cal"
+  }  
+  "region" : "CENTRAL_COAST",
+  "_links" : {
+    "self" : {
+      "href" : "http://localhost:8080/tours/1"
+    },
+    "tour" : {
+      "href" : "http://localhost:8080/tours/1"
+    },
+    "tourPackage" : {
+      "href" : "http://localhost:8080/tours/1/tourPackage"
+    }
+  }
+}
+```
+
+which doesn't suffer from a number of issues and annoyances while attempting to work with references.
+
+> Look into ways around this, they must exist.
+
 ### Creating the APIs with Spring Data REST
 
 > Automagically create the endpoints with `spring-data-rest` library.
@@ -156,3 +210,31 @@ Creates endpoints for all standard methods:
 - DELETE /entities/:id
 
 ### Search resource
+
+### Paging and Sorting
+
+Providing the following parameters:
+
+- `size` the number of elements in a page
+- `page` the page in which to display
+- `sort` the stort field providing `ASC|DESC` as applciable
+
+This is done by converting the method signature with:
+
+```
+Page<Tour> findBy...(@Param("code") String code, Pageable pageable);
+```
+
+### Controlling API Exposure
+
+Two annotations used to control:
+
+- `@RepositoryRestResource(exported=false)` at the class level
+- `@RestResource(exported = false)` at the method level
+
+To do this we need to `@Override` the auto generated method signatures.
+
+### HAL Browser
+
+## Chapter 3 - Expose RESTful APIs with Spring MVC
+
