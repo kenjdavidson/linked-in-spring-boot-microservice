@@ -238,3 +238,41 @@ To do this we need to `@Override` the auto generated method signatures.
 
 ## Chapter 3 - Expose RESTful APIs with Spring MVC
 
+The introduction of `@RestController` that this controller follows typical REST behavior.  Responsible for accepting, routing to appropriate repository, responding.  The reason for using this would be to:
+
+- Not using Spring data repositories
+- API launches an algorithm
+- Hide the internal data model (entity schema)
+- Require a layer of business services
+
+To annotate:
+
+```
+@RestController
+@RequestMapping(path = "/examples")
+public class ExampleController {
+
+}
+```
+
+> Each class should only map to one resource.  Ie `Class` => `/classes`
+
+### Declare a new RestController
+
+The following requests:
+
+- Allow rating
+- Modify a rating
+- View all ratings (no cust id)
+- View average ratings for tour (no cust id)
+
+> Expect appropriate response codes based on requests and success/failures
+
+# Missing / Questions
+
+1. With how much stress was put into the video to use HATEOS (which I get) all that went out the window when starting to work with the `RatingDto` (customer `Controller` functionality).  It would have been cool if there was:
+
+- A quick description of why you would want to break out of HATEOS if that was your initial design goal?  I get choosing one or the other but why split?
+- How to add your `RatingDto` and the appropriate controller endpoints into the HATEOS definitions for `Tour`?
+
+> Welp, just found this in the last comment.  Apparently it's in one of her other coureses **Extending, Securing and Dockerizing Spring Boot Microservices** so we'll be doing that next!

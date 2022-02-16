@@ -1,6 +1,7 @@
 package kjd.linkedin.explorecali.tour;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -8,6 +9,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 
 import kjd.linkedin.explorecali.common.Difficulty;
 import kjd.linkedin.explorecali.common.Region;

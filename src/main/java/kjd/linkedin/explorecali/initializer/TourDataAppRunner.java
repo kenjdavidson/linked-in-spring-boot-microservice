@@ -14,7 +14,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.stereotype.Component;
 
 import kjd.linkedin.explorecali.common.Difficulty;
 import kjd.linkedin.explorecali.common.Region;
@@ -22,14 +24,15 @@ import kjd.linkedin.explorecali.tour.TourPackageService;
 import kjd.linkedin.explorecali.tour.TourService;
 import lombok.Data;
 
-@Service
-public class DataInitializer {
-    Logger logger = LoggerFactory.getLogger(DataInitializer.class);
+@Component
+public class TourDataAppRunner implements ApplicationRunner {
+    Logger logger = LoggerFactory.getLogger(TourDataAppRunner.class);
     
     @Autowired TourPackageService tourPackageService;
 	@Autowired TourService tourService;
 
-    public void initialize() throws IOException {
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
         logger.info("Loading Tour and TourPackge data");
         loadData();
     }
@@ -65,7 +68,7 @@ public class DataInitializer {
             price, length, keywords, difficulty, region;
 
         static List<TourData> read(String file) throws IOException {
-            InputStream is = DataInitializer.class.getClassLoader().getResourceAsStream(file);
+            InputStream is = TourDataAppRunner.class.getClassLoader().getResourceAsStream(file);
             return new ObjectMapper()
                 .setVisibility(PropertyAccessor.FIELD, Visibility.ANY)
                 .readValue(is, new TypeReference<List<TourData>>(){});
