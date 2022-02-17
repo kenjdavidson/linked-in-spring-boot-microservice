@@ -268,7 +268,7 @@ The following requests:
 
 > Expect appropriate response codes based on requests and success/failures
 
-# Missing / Questions
+### Missing / Questions
 
 1. With how much stress was put into the video to use HATEOS (which I get) all that went out the window when starting to work with the `RatingDto` (customer `Controller` functionality).  It would have been cool if there was:
 
@@ -276,3 +276,37 @@ The following requests:
 - How to add your `RatingDto` and the appropriate controller endpoints into the HATEOS definitions for `Tour`?
 
 > Welp, just found this in the last comment.  Apparently it's in one of her other coureses **Extending, Securing and Dockerizing Spring Boot Microservices** so we'll be doing that next!
+
+## Pivot to MongoDB No SQL 
+
+In order to get the **devcontainer** up and running with MongoDB the following changes needed to be made.  A `docker-compose.yml` file needed to be created providing both the current `Dockerfile` (app) and the new `mongo` container.
+
+```
+version: '3'
+
+services:
+  app:
+    build: 
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+      args:
+        VARIANT: "bullseye"
+        INSTALL_MAVEN: "true"
+        INSTALL_GRADLE: "false"
+        NODE_VERSION: "lts/*"
+    volumes:
+      - ..:/workspace:cached    
+    command: sleep infinity 
+    network_mode: service:mongo
+
+  mongo:
+    image: mongo:5.0.6
+    # Required or else network_mode: service:mongo fails
+    restart: unless-stopped
+    volumes:
+      - ../data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: microservice 
+      MONGO_INITDB_ROOT_PASSWORD: microservice
+    
+```
