@@ -310,3 +310,5 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: microservice
     
 ```
+
+> Scratch this, it looks like the project just uses an embeded mongo database.
