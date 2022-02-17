@@ -268,7 +268,7 @@ The following requests:
 
 > Expect appropriate response codes based on requests and success/failures
 
-# Missing / Questions
+### Missing / Questions
 
 1. With how much stress was put into the video to use HATEOS (which I get) all that went out the window when starting to work with the `RatingDto` (customer `Controller` functionality).  It would have been cool if there was:
 
@@ -276,3 +276,7 @@ The following requests:
 - How to add your `RatingDto` and the appropriate controller endpoints into the HATEOS definitions for `Tour`?
 
 > Welp, just found this in the last comment.  Apparently it's in one of her other coureses **Extending, Securing and Dockerizing Spring Boot Microservices** so we'll be doing that next!
+
+## Chapter 5 - MongoDB
+
+See the `mongodb` branch for changes.
