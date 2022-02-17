@@ -6,13 +6,11 @@ import java.util.Optional;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-import kjd.linkedin.explorecali.tour.TourRating.TourRatingKey;
-
 @RepositoryRestResource(exported = false)
-public interface TourRatingRespository extends CrudRepository<TourRating, TourRatingKey> {
+public interface TourRatingRespository extends CrudRepository<TourRating, String> {
     
-    Optional<List<TourRating>> findByKeyTourId(Long tourId);
+    Optional<List<TourRating>> findByTourId(String tourId);
 
-    Optional<TourRating> findByKeyTourIdAndKeyCustomerId(Long tourId, Long customerId);
-    
+    Optional<TourRating> findByTourIdAndCustomerId(String tourId, String customerId);
+
 }

@@ -1,30 +1,26 @@
 package kjd.linkedin.explorecali.customer;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity
+@Document
 @NoArgsConstructor
 @Getter
 @Setter
 public class Customer {
     @Id
-    @GeneratedValue
-    private Long id;
+    private String id;
 
-    @Column(name="first_name")
     private String firstName;
 
-    @Column(name="last_name")
     private String lastName;
 
-    @Column(unique = true)
+    @Indexed(unique = true)
     private String email;    
 
     public Customer(String firstName, String lastName, String email) {

@@ -1,51 +1,46 @@
 package kjd.linkedin.explorecali.tour;
 
-import java.io.Serializable;
-import java.text.MessageFormat;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
-import javax.persistence.EmbeddedId;
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import kjd.linkedin.explorecali.customer.Customer;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity
+@Document
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @AllArgsConstructor
 @Getter
 @Setter
 public class TourRating {   
 
-    @EmbeddedId
-    private TourRatingKey key;
+    @Id
+    private String id;
 
-    @Column(nullable = false)
+    @NotNull 
+    private String customerId;
+
+    @NotNull
+    private String tourId;
+
+    @Min(0)
+    @Max(5)
     private Integer score;
 
-    @Column(nullable = false)
+    @Size(max = 255)
     private String comment;
 
-    @Embeddable
-    @NoArgsConstructor(access = AccessLevel.PACKAGE)
-    @AllArgsConstructor
-    public static class TourRatingKey implements Serializable {        
-        @OneToOne
-        private Customer customer;
-
-        @ManyToOne
-        private Tour tour;                
-
-        @Override 
-        public String toString() {
-            return MessageFormat.format("Customer: {0}, Tour: {1}", customer.getId(), tour.getId());
-        }
+    public TourRating(String customerId, String tourId, Integer score, String comment) {
+        this.customerId = customerId;
+        this.tourId = tourId;
+        this.score = score;
+        this.comment = comment;
     }
 }

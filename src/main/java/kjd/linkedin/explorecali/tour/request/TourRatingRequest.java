@@ -13,7 +13,7 @@ import lombok.Getter;
 public class TourRatingRequest {
     
     @NotNull
-    private Long customerId;
+    private String customerId;
 
     @Min(0)
     @Max(5)

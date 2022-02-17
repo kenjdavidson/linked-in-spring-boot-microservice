@@ -8,7 +8,6 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import kjd.linkedin.explorecali.customer.Customer;
 import kjd.linkedin.explorecali.customer.CustomerRepository;
-import kjd.linkedin.explorecali.tour.TourRating.TourRatingKey;
 import kjd.linkedin.explorecali.tour.request.TourRatingRequest;
 import kjd.linkedin.explorecali.tour.response.TourRatingResponse;
 import lombok.AccessLevel;
@@ -52,21 +50,20 @@ public class TourRatingController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void createTourRating(@PathVariable("tourId") Long tourId, 
+    public void createTourRating(@PathVariable("tourId") String tourId, 
                                  @RequestBody @Validated TourRatingRequest createTourRating) {
-        Customer customer = verifyExists("Customer", createTourRating.getCustomerId(), customerRepository);
-        Tour tour = verifyExists("Tour", tourId, tourRepository);
+        Customer customer = verifyCustomerExists(createTourRating.getCustomerId());
+        Tour tour = verifyTourExists(tourId);
 
-        TourRatingKey key = new TourRatingKey(customer, tour);
-        TourRating rating = new TourRating(key, createTourRating.getScore(), createTourRating.getComment());
+        TourRating rating = new TourRating(customer.getId(), tour.getId(), createTourRating.getScore(), createTourRating.getComment());
         tourRatingRepository.save(rating);
     }
 
     @GetMapping
-    public List<TourRatingResponse> getRatingsByTour(@PathVariable("tourId") Long tourId) {
-        verifyExists("Tour", tourId, tourRepository);
+    public List<TourRatingResponse> getRatingsByTour(@PathVariable("tourId") String tourId) {
+        verifyTourExists(tourId);
             
-        return tourRatingRepository.findByKeyTourId(tourId)
+        return tourRatingRepository.findByTourId(tourId)
                 .orElseThrow(() -> new NoSuchElementException("Tour has no ratings"))    
                 .stream()
                 .map(TourRatingResponse::new)
@@ -74,13 +71,12 @@ public class TourRatingController {
     }
 
     @PutMapping
-    public TourRatingResponse updateRating(@PathVariable("tourId") Long tourId, 
+    public TourRatingResponse updateRating(@PathVariable("tourId") String tourId, 
                                            @RequestBody @Validated TourRatingRequest createTourRating) {
-        Customer customer = verifyExists("Customer", createTourRating.getCustomerId(), customerRepository);
-        Tour tour = verifyExists("Tour", tourId, tourRepository);
+        Customer customer = verifyCustomerExists(createTourRating.getCustomerId());
+        Tour tour = verifyTourExists(tourId);
 
-        TourRatingKey key = new TourRatingKey(customer, tour);
-        TourRating rating = verifyExists("Rating", key, tourRatingRepository);
+        TourRating rating = verifyExists(tour.getId(), customer.getId());
         rating.setScore(createTourRating.getScore());
         rating.setComment(createTourRating.getComment());
 
@@ -88,13 +84,11 @@ public class TourRatingController {
     }
 
     @PatchMapping
-    public TourRatingResponse patchRating(@PathVariable("tourId") Long tourId, 
+    public TourRatingResponse patchRating(@PathVariable("tourId") String tourId, 
                                           @RequestBody @Validated TourRatingRequest createTourRating) {
-        Customer customer = verifyExists("Customer", createTourRating.getCustomerId(), customerRepository);
-        Tour tour = verifyExists("Tour", tourId, tourRepository);
-
-        TourRatingKey key = new TourRatingKey(customer, tour);
-        TourRating rating = verifyExists("Rating", key, tourRatingRepository);
+        Customer customer = verifyCustomerExists(createTourRating.getCustomerId());
+        Tour tour = verifyTourExists(tourId);
+        TourRating rating = verifyExists(tour.getId(), customer.getId());
 
         if (createTourRating.getScore() != null) {
             rating.setScore(createTourRating.getScore());
@@ -107,23 +101,21 @@ public class TourRatingController {
     }
 
     @DeleteMapping(path = "/{customerId}")
-    public TourRatingResponse deleteRating(@PathVariable("tourId") Long tourId, 
-                                           @PathVariable("customerId") Long customerId) {
-        Customer customer = verifyExists("Customer", customerId, customerRepository);
-        Tour tour = verifyExists("Tour", tourId, tourRepository);
-
-        TourRatingKey key = new TourRatingKey(customer, tour);
-        TourRating rating = verifyExists("Rating", key, tourRatingRepository);
+    public TourRatingResponse deleteRating(@PathVariable("tourId") String tourId, 
+                                           @PathVariable("customerId") String customerId) {
+        Customer customer = verifyCustomerExists(customerId);
+        Tour tour = verifyTourExists(tourId);
+        TourRating rating = verifyExists(tour.getId(), customer.getId());
 
         tourRatingRepository.delete(rating);
         return new TourRatingResponse(rating);
     }
 
     @GetMapping(path = "/average")
-    public Map<String,Object> getAverageByTour(@PathVariable("tourId") Long tourId) {        
-        verifyExists("Tour", tourId, tourRepository);
+    public Map<String,Object> getAverageByTour(@PathVariable("tourId") String tourId) {        
+        verifyTourExists(tourId);
 
-        List<TourRating> ratings = tourRatingRepository.findByKeyTourId(tourId)
+        List<TourRating> ratings = tourRatingRepository.findByTourId(tourId)
             .orElseThrow(() -> new NoSuchElementException("Tour has no ratings"));        
         
         Map<String,Object> result = new HashMap<>();
@@ -132,22 +124,22 @@ public class TourRatingController {
         return result;
     }
 
-    /**
-     * Adding the type here isn't the best, but it's quick.  Would be better if the method pulled out
-     * the name of the type directly from the repository; thorugh either reflection or providing the
-     * type.
-     * 
-     * @param <T>
-     * @param <ID>
-     * @param type
-     * @param id
-     * @param lookup
-     * @return
-     * @throws NoSuchElementException
-     */
-    private <T, ID> T verifyExists(String type, ID id, CrudRepository<T, ID> lookup) throws NoSuchElementException {
-        return (T) lookup
-            .findById(id)
-            .orElseThrow(() -> new NoSuchElementException(MessageFormat.format("{0} does not exist {1}", type, id)));
+    private Customer verifyCustomerExists(String customerId) {
+        return customerRepository
+            .findById(customerId)
+            .orElseThrow(() -> new NoSuchElementException(MessageFormat.format("Customer does not exist {0}", customerId)));
     }
+
+    private Tour verifyTourExists(String tourId) {
+        return tourRepository
+            .findById(tourId)
+            .orElseThrow(() -> new NoSuchElementException(MessageFormat.format("Tour does not exist {0}, {1}", tourId)));
+    }
+
+    private TourRating verifyExists(String tourId, String customerId) {
+        return tourRatingRepository
+            .findByTourIdAndCustomerId(tourId, customerId)
+            .orElseThrow(() -> new NoSuchElementException(MessageFormat.format("TourRating does not exist {0}, {1}", tourId, customerId)));
+    }
+
 }

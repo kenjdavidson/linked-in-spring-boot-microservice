@@ -312,3 +312,10 @@ services:
 ```
 
 > Scratch this, it looks like the project just uses an embeded mongo database.
+
+Some things just don't seem right, why do we have:
+
+- `tourPackageCode`
+- `tourPackageName`
+
+inside a `Tour` instead of just having the `tourPackage`?

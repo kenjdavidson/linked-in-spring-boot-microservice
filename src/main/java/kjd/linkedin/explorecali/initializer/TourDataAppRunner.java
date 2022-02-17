@@ -2,9 +2,10 @@ package kjd.linkedin.explorecali.initializer;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
@@ -14,12 +15,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
-import kjd.linkedin.explorecali.common.Difficulty;
-import kjd.linkedin.explorecali.common.Region;
 import kjd.linkedin.explorecali.tour.TourPackageService;
 import kjd.linkedin.explorecali.tour.TourService;
 import lombok.Data;
@@ -28,6 +28,7 @@ import lombok.Data;
 public class TourDataAppRunner implements ApplicationRunner {
     Logger logger = LoggerFactory.getLogger(TourDataAppRunner.class);
     
+    @Value("${ec.importfile}") String importFile;
     @Autowired TourPackageService tourPackageService;
 	@Autowired TourService tourService;
 
@@ -38,7 +39,7 @@ public class TourDataAppRunner implements ApplicationRunner {
     }
 
     private void loadData() throws IOException {
-        TourData.read("tour/ExploreCalifornia.json")            
+        TourData.read(importFile)            
             .forEach(this::createData);
 
         logger.info("Loaded {} tour packages", tourPackageService.total());
@@ -46,32 +47,35 @@ public class TourDataAppRunner implements ApplicationRunner {
     }
 
     private void createData(TourData data) {
-        String packageCode = Arrays.stream(data.packageType.split("\\s+"))
+        String packageCode = Arrays.stream(data.packageName.split("\\s+"))
             .map(w -> w.substring(0, 1))
             .reduce("", (t, u) -> t.concat(u.toUpperCase()));
 
-        tourPackageService.createTourPackage(packageCode, data.packageType);
-        tourService.createTour(data.packageType, 
+        tourPackageService.createTourPackage(packageCode, data.packageName);
+        tourService.createTour(data.packageName, 
             data.title, 
-            data.description, 
-            data.blurb, 
-            new BigDecimal(data.price), 
-            data.length, 
-            data.keywords, 
-            Region.findByLabel(data.region), 
-            Difficulty.findByLabel(data.difficulty));
+            data.details);
     }
 
     @Data
     private static class TourData {
-        private String packageType, title, description, blurb, bullets,
-            price, length, keywords, difficulty, region;
+        private String packageName;
+        private String title;
+        private Map<String,String> details;
+
+        TourData(Map<String,String> record) {
+            this.title = record.remove("title");
+            this.packageName = record.remove("packageType");
+            this.details = record;
+        }
 
         static List<TourData> read(String file) throws IOException {
             InputStream is = TourDataAppRunner.class.getClassLoader().getResourceAsStream(file);
-            return new ObjectMapper()
+            List<Map<String,String>> records = new ObjectMapper()
                 .setVisibility(PropertyAccessor.FIELD, Visibility.ANY)
-                .readValue(is, new TypeReference<List<TourData>>(){});
+                .readValue(is, new TypeReference<List<Map<String,String>>>(){});
+
+            return records.stream().map(TourData::new).collect(Collectors.toList());
         }
     }
 }
